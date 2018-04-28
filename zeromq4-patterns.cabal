@@ -1,9 +1,11 @@
-name:           zeromq4-clone-pattern
+name:           zeromq4-patterns
 version:        0.1.0.0
-synopsis:       Haskell implementation of the ZeroMQ clone pattern.
-description:    Haskell implementation of the ZeroMQ Reliable Pub-Sub (Clone) pattern.
-homepage:       https://github.com/hverr/zeromq4-clone-pattern#readme
-bug-reports:    https://github.com/hverr/zeromq4-clone-pattern/issues
+synopsis:       Haskell implementation of several ZeroMQ patterns.
+description:
+    Haskell implementation of several ZeroMQ patterns that you can find in the
+    official ZeroMQ guide.
+homepage:       https://github.com/hverr/zeromq4-patterns#readme
+bug-reports:    https://github.com/hverr/zeromq4-patterns/issues
 author:         Henri Verroken
 maintainer:     henriverroken@gmail.com
 copyright:      2018 Henri Verroken
@@ -16,7 +18,7 @@ extra-source-files: README.md
 
 source-repository head
   type: git
-  location: https://github.com/hverr/zeromq4-clone-pattern
+  location: https://github.com/hverr/zeromq4-patterns
 
 library
   hs-source-dirs:       src
@@ -33,21 +35,21 @@ library
   default-language:     Haskell2010
   ghc-options:          -Wall
 
-executable zeromq4-clone-pattern-exe
+executable zeromq4-patterns-exe
   main-is:              Main.hs
   hs-source-dirs:       example
   build-depends:        base >=4.7 && <5
-                      , zeromq4-clone-pattern
+                      , zeromq4-patterns
   default-language:     Haskell2010
   ghc-options:          -threaded -rtsopts -with-rtsopts=-N -Wall
 
-test-suite zeromq4-clone-pattern-test
+test-suite zeromq4-patterns-test
   type:                 exitcode-stdio-1.0
   main-is:              Spec.hs
   hs-source-dirs:       test
   ghc-options:          -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:        base >=4.7 && <5
-                      , zeromq4-clone-pattern
+                      , zeromq4-patterns
                       , QuickCheck
                       , async
                       , binary
