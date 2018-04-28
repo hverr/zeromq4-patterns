@@ -28,6 +28,7 @@ library
                       , bytestring
                       , exceptions
                       , stm
+                      , transformers
                       , zeromq4-haskell
   default-language:     Haskell2010
   ghc-options:          -Wall
