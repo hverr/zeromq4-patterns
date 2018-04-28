@@ -10,10 +10,10 @@ module System.ZMQ4.Patterns.Clone.Internal (
 , iSTATE_REQUEST
 
   -- * Server
-, server
+, publisher
 
   -- * Client
-, client
+, subscriber
 ) where
 
 import Control.Concurrent.Async (Async, waitBoth, uninterruptibleCancel)
@@ -66,21 +66,21 @@ iSTATE_REQUEST = "STATE_REQUEST?"
 -- object cached, and use at as a snapshot. Sequencing
 -- is automatically handled using a 'Word64' sequence
 -- counter.
-server :: Binary a
-       => String    -- ^ Bind address of the PUB socket
-       -> String    -- ^ Bind address of the ROUTER socket
-       -> MVar a    -- ^ Channel of incoming messages
-       -> IO ()
-server !pubAddr !routerAddr !chan = runZMQ $ do
+publisher :: Binary a
+          => String    -- ^ Bind address of the PUB socket
+          -> String    -- ^ Bind address of the ROUTER socket
+          -> MVar a    -- ^ Channel of incoming messages
+          -> IO ()
+publisher !pubAddr !routerAddr !chan = runZMQ $ do
     ready <- liftIO newEmptyMVar
     routerC <- liftIO . atomically $ newTVar Nothing
 
-    withAsync (publisher ready routerC) $ \t1 ->
+    withAsync (publisher' ready routerC) $ \t1 ->
         withAsync (router ready routerC) $ \t2 ->
             void . liftIO $ waitBoth t1 t2
   where
-    publisher :: forall z void. MVar () -> TVar (Maybe ByteString) -> ZMQ z void
-    publisher ready routerC = do
+    publisher' :: forall z void. MVar () -> TVar (Maybe ByteString) -> ZMQ z void
+    publisher' ready routerC = do
         -- bind socket
         pub <- socket Pub
         bind pub pubAddr
@@ -136,12 +136,12 @@ server !pubAddr !routerAddr !chan = runZMQ $ do
 --
 -- Note that this pattern is not 100% reliable. Messages might be dropped
 -- between the initial state request and the first update.
-client :: Binary a
-       => String    -- ^ Address of the server's PUB socket
-       -> String    -- ^ Address of the server's ROUTER socket
-       -> MVar a    -- ^ CHannel where incoming messsages will be written to
-       -> IO ()
-client !pubAddr !routerAddr !chan = runZMQ $ do
+subscriber :: Binary a
+           => String    -- ^ Address of the server's PUB socket
+           -> String    -- ^ Address of the server's ROUTER socket
+           -> MVar a    -- ^ CHannel where incoming messsages will be written to
+           -> IO ()
+subscriber !pubAddr !routerAddr !chan = runZMQ $ do
     -- connect to both sockets
     sub <- socket Sub
     connect sub pubAddr

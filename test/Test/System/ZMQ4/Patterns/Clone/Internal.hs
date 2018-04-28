@@ -48,8 +48,8 @@ prop_server_client test = within (10*1000*1000) $ ioProperty $ do
     pushC <- newEmptyMVar
     recvC <- newEmptyMVar
 
-    withAsync (server pubAddr routerAddr pushC) $ \_ ->
-      withAsync (client pubAddr routerAddr recvC) $ \_ ->
+    withAsync (publisher pubAddr routerAddr pushC) $ \_ ->
+      withAsync (subscriber pubAddr routerAddr recvC) $ \_ ->
         withAsync (pushAll pushC) $ \_ ->
           receiveAll recvC
   where

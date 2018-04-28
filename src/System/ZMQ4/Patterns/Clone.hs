@@ -35,8 +35,8 @@
 --
 module System.ZMQ4.Patterns.Clone (
   -- * Server and client
-  server
-, client
+  publisher
+, subscriber
 ) where
 
-import System.ZMQ4.Patterns.Clone.Internal (server, client)
+import System.ZMQ4.Patterns.Clone.Internal (publisher, subscriber)
