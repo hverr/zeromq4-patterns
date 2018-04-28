@@ -13,6 +13,10 @@ Haskell implementation of several ZeroMQ patterns that you can find in the [offi
 ## Implementations
 
 - [`System.ZMQ4.Patterns.Clone`][clone-module]: [ZeroMQ Reliable Pub-Sub (Clone) pattern][zeromq-clone]
+- [`System.ZMQ4.Patterns.RequestReply`][requestreply-module]: [ZeroMQ Request-Reply pattern][zeromq-requestreply]
 
   [clone-module]: https://hackage.haskell.org/package/zeromq4-patterns/docs/System-ZMQ4-Patterns-Clone.html
   [zeromq-clone]: http://zguide.zeromq.org/page:all#Reliable-Pub-Sub-Clone-Pattern
+
+  [requestreply-module]: https://hackage.haskell.org/package/zeromq4-patterns/docs/System-ZMQ4-Patterns-RequestReply.html
+  [zeromq-requestreply]: http://zguide.zeromq.org/page:all#Ask-and-Ye-Shall-Receive

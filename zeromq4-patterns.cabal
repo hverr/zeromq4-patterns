@@ -1,5 +1,5 @@
 name:           zeromq4-patterns
-version:        0.1.0.0
+version:        0.2.0.0
 synopsis:       Haskell implementation of several ZeroMQ patterns.
 description:
     Haskell implementation of several ZeroMQ patterns that you can find in the
