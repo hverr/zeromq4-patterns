@@ -1,79 +1,12 @@
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Main where
 
-import Control.Concurrent
-import Control.Concurrent.Async
+import Test.Framework (defaultMain)
 
-import Data.Binary (encode, decode)
-import Data.Word (Word64)
-
-import System.ZMQ4.Patterns.Clone.Internal
-
-import Test.Framework (Test, defaultMain, testGroup)
-import Test.Framework.Providers.QuickCheck2 (testProperty)
-import Test.QuickCheck
+import qualified Test.System.ZMQ4.Patterns.Clone.Internal
+import qualified Test.System.ZMQ4.Patterns.RequestReply
 
 main :: IO ()
-main = defaultMain [tests]
-
-tests :: Test
-tests = testGroup "System.ZMQ4.Patterns.Clone.Internal" [
-    testProperty "binary message" prop_binary_message
-  , testProperty "server client" prop_server_client
+main = defaultMain [
+    Test.System.ZMQ4.Patterns.Clone.Internal.tests
+  , Test.System.ZMQ4.Patterns.RequestReply.tests
   ]
-
-newtype TestMessage = TestMessage (Message Int) deriving (Eq, Show)
-
-instance Arbitrary TestMessage where
-    arbitrary = TestMessage <$> (Message <$> arbitrary <*> arbitrary)
-
-prop_binary_message :: TestMessage -> Bool
-prop_binary_message (TestMessage m) = m == decode (encode m)
-
-
-data ServerClientTest = ServerClientTest {
-    serverClientTestMessages :: ![Word64]
-  } deriving (Show)
-
-instance Arbitrary ServerClientTest where
-    arbitrary = do
-        xs <- sized $ \n' ->
-            let n = fromIntegral (max 1 n') in
-            return [1..n]
-        return $! ServerClientTest xs
-
-prop_server_client :: ServerClientTest -> Property
-prop_server_client test = within (10*1000*1000) $ ioProperty $ do
-    let pubAddr    = "ipc:///tmp/zeromq4-clone-pattern-test-pub.socket"
-        routerAddr = "ipc:///tmp/zeromq4-clone-pattern-test-router.socket"
-
-    pushC <- newEmptyMVar
-    recvC <- newEmptyMVar
-
-    withAsync (server pubAddr routerAddr pushC) $ \_ ->
-      withAsync (client pubAddr routerAddr recvC) $ \_ ->
-        withAsync (pushAll pushC) $ \_ ->
-          receiveAll recvC
-  where
-    messages = serverClientTestMessages test
-
-    pushAll :: MVar Word64 -> IO ()
-    pushAll c = mapM_ (\x -> putMVar c x >> threadDelay (1000))
-                      messages
-
-    receiveAll :: MVar Word64 -> IO Property
-    receiveAll c = do
-        initSeq <- takeMVar c
-        let next :: Word64 -> IO Property
-            next !s | s == (fromIntegral $ length messages) = return $ property True
-                    | otherwise = do ms' <- race (threadDelay (100*1000))
-                                                 (takeMVar c)
-                                     case ms' of
-                                        Left () -> return $ property True
-                                        Right s' ->
-                                            if s' <= s then
-                                               return $ counterexample "out of order" False
-                                            else
-                                               next s'
-        next initSeq

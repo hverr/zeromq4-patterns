@@ -24,6 +24,7 @@ library
   hs-source-dirs:       src
   exposed-modules:      System.ZMQ4.Patterns.Clone
                       , System.ZMQ4.Patterns.Clone.Internal
+                      , System.ZMQ4.Patterns.RequestReply
   build-depends:        base >=4.7 && <5
                       , async
                       , binary
@@ -47,7 +48,8 @@ test-suite zeromq4-patterns-test
   type:                 exitcode-stdio-1.0
   main-is:              Spec.hs
   hs-source-dirs:       test
-  ghc-options:          -threaded -rtsopts -with-rtsopts=-N -Wall
+  other-modules:        Test.System.ZMQ4.Patterns.Clone.Internal
+                      , Test.System.ZMQ4.Patterns.RequestReply
   build-depends:        base >=4.7 && <5
                       , zeromq4-patterns
                       , QuickCheck
