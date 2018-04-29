@@ -5,7 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module System.ZMQ4.Patterns.RequestReply (
   -- * Type class
-  RequestReply(..)
+  RequestReply
 
   -- * Server and client
 , responder
@@ -16,7 +16,6 @@ import Control.Monad (forever)
 import Control.Monad.IO.Class (liftIO)
 
 import Data.Binary
-import Data.Proxy (Proxy)
 import qualified Data.ByteString.Lazy as BL
 
 import System.ZMQ4.Monadic
@@ -36,15 +35,16 @@ import System.ZMQ4.Monadic
 -- >>> data A = A deriving (Binary, Show)
 -- >>> data B = B deriving (Binary, Show)
 -- >>>
--- >>> instance RequestReply A B where
--- >>>     reply _ = B
+-- >>> instance RequestReply A B
+-- >>>
+-- >>> reply :: A -> IO B
+-- >>> reply _ = return B
 -- >>>
 -- >>> main :: IO ()
--- >>> main = withAsync (responder @A Proxy "tcp://*:5000") $ \_ ->
+-- >>> main = withAsync (responder "tcp://*:5000" reply) $ \_ ->
 -- >>>     requester "tcp://127.0.0.1:5000" A >>= print
 --
 class (Binary a, Binary b) => RequestReply a b | a -> b where
-    reply :: a -> IO b
 
 -- | Start responding using the given type class.
 --
@@ -53,10 +53,10 @@ class (Binary a, Binary b) => RequestReply a b | a -> b where
 -- Silently ignores a request when decoding fails
 responder :: forall a b .
             RequestReply a b
-         => Proxy a             -- ^ Proxy type of the request type
-         -> String              -- ^ Address to bind to
+         => String              -- ^ Address to bind to
+         -> (a -> IO b)         -- ^ Reply function
          -> IO ()
-responder _ addr = runZMQ $ do
+responder addr reply = runZMQ $ do
     rep <- socket Rep
     bind rep addr
 

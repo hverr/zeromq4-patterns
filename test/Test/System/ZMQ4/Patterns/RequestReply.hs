@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE TypeApplications #-}
 module Test.System.ZMQ4.Patterns.RequestReply (tests) where
 
 import Control.Concurrent.Async
@@ -8,7 +7,6 @@ import Control.Concurrent.Async
 import Control.Monad (replicateM)
 
 import Data.Binary
-import Data.Proxy
 
 import GHC.Generics (Generic)
 
@@ -34,9 +32,11 @@ data Response = RepA | RepB deriving (Eq, Generic, Show)
 
 instance Binary Response
 
-instance RequestReply Request Response where
-    reply ReqA = return RepA
-    reply ReqB = return RepB
+instance RequestReply Request Response
+
+reply :: Request -> IO Response
+reply ReqA = return RepA
+reply ReqB = return RepB
 
 newtype TestSetup = TestSetup [Request] deriving (Show)
 
@@ -45,7 +45,7 @@ instance Arbitrary TestSetup where
 
 prop_server_client :: TestSetup -> Property
 prop_server_client (TestSetup reqs) = within (10*1000*1000) $ ioProperty $
-    withAsync (responder @Request Proxy addr) $ \_ ->
+    withAsync (responder addr reply) $ \_ ->
         checkAll reqs
 
   where
