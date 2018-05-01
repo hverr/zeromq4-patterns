@@ -18,6 +18,7 @@ tests :: Test
 tests = testGroup "System.ZMQ4.Patterns.Clone.Internal" [
     testProperty "binary message" prop_binary_message
   , testProperty "server client" prop_server_client
+  , testProperty "server queryLastState" prop_server_queryLastState
   ]
 
 newtype TestMessage = TestMessage (Message Int) deriving (Eq, Show)
@@ -74,3 +75,15 @@ prop_server_client test = within (10*1000*1000) $ ioProperty $ do
                                             else
                                                next s'
         next initSeq
+
+prop_server_queryLastState :: Word64 -> Property
+prop_server_queryLastState val = within (10*1000*1000) $ ioProperty $ do
+    let pubAddr    = "ipc:///tmp/zeromq4-clone-pattern-test-pub.socket"
+        routerAddr = "ipc:///tmp/zeromq4-clone-pattern-test-router.socket"
+
+    pushC <- newEmptyMVar
+
+    withAsync (publisher pubAddr routerAddr pushC) $ \_ ->
+      withAsync (putMVar pushC val) $ \_ -> do
+        m <- queryLastState routerAddr
+        return $ property (m == val)

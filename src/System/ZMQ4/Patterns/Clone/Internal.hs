@@ -14,6 +14,7 @@ module System.ZMQ4.Patterns.Clone.Internal (
 
   -- * Client
 , subscriber
+, queryLastState
 ) where
 
 import Control.Concurrent.Async (Async, waitBoth, uninterruptibleCancel)
@@ -166,6 +167,22 @@ subscriber !pubAddr !routerAddr !chan = runZMQ $ do
         when (messageVersion env' > messageVersion env) $
             liftIO $ putMVar chan a'
 
+-- | Only request the most recent state from the server.
+--
+-- This function will query the ROUTER port for the latest state, and return
+-- it.
+queryLastState :: Binary a
+               => String    -- ^ Address of the server's ROUTER socket
+               -> IO a
+queryLastState !routerAddr = runZMQ $ do
+    dealer <- socket Dealer
+    connect dealer routerAddr
+
+    send dealer [] iSTATE_REQUEST
+    msg <- receive dealer
+    let !env = decode (BL.fromStrict msg)
+        !a = messageValue env
+    return a
 
 -- | Helper function
 withAsync :: ZMQ z a -> (Async a -> ZMQ z b) -> ZMQ z b

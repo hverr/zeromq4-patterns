@@ -37,6 +37,7 @@ module System.ZMQ4.Patterns.Clone (
   -- * Server and client
   publisher
 , subscriber
+, queryLastState
 ) where
 
-import System.ZMQ4.Patterns.Clone.Internal (publisher, subscriber)
+import System.ZMQ4.Patterns.Clone.Internal (publisher, subscriber, queryLastState)
